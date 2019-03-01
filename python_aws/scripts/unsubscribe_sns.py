@@ -2,11 +2,12 @@
 
 import boto3
 import sys
+import argparse
 
 sns = boto3.client('sns', region_name='us-east-1')
-topic = sys.argv[1]
 
-def unsub_list(new_lst):
+def unsub_list(new_lst, topic):
+    """Return the list of SNS ARNs to be unsubscribed."""
     res = sns.list_subscriptions_by_topic(TopicArn=topic)
     remote_lst = {}
     for s in res['Subscriptions']:
@@ -16,16 +17,23 @@ def unsub_list(new_lst):
     return unsubscribe_lst_arns
 
 def unsub(who_arns_lst):
-    try:
-        for arn in who_arns_lst:
-            res = sns.unsubscribe(SubscriptionArn=arn)
-            return res
-    except Exception as e:
-        print(e)
+    """Unsubscribing SNS ARNS passed as list of ARNs."""
+    if len(who_arns_lst) == 0:
+        print('Nothing to do')
+    else:
+        try:
+            for arn in who_arns_lst:
+                res = sns.unsubscribe(SubscriptionArn=arn)
+                print('Unsubscribed: ', arn)
+                print('HTTPStatusCode: ', res['ResponseMetadata']['HTTPStatusCode'])
+        except Exception as e:
+            print(e)
 
-support_emails = [
-    "example@rmail.com"
-]
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-t', '--topic', required=True, help='topic sns arn')
+    parser.add_argument('-s', '--subscribers', required=True, help='the list of subscribers')
 
-to_unsub = unsub_list(support_emails)
-unsub(to_unsub)
+    args = parser.parse_args()
+    who_to_unsub = unsub_list(args.subscribers, args.topic)
+    unsub(who_to_unsub)
