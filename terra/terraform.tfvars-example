@@ -1,5 +1,0 @@
-ami_id = "ami-xxx"
-sec_gr = ["sg-xxx"]
-access_key = "xxx"
-secret_key = "xxx"
-region = "us-east-1"
